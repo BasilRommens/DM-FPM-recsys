@@ -1,7 +1,4 @@
-import time
 from itertools import chain, combinations, filterfalse
-
-import np as np
 
 
 def powerset(iterable):
@@ -19,14 +16,18 @@ def _join_set(itemsets, k):
 
 
 def join_set(itemsets, k):
-    return set(
-        [
-            itemset1.union(frozenset(list(itemset2)[-1:]))
-            for itemset1 in itemsets
-            for itemset2 in itemsets
-            if list(itemset1)[:-1] == list(itemset2)[:-1] and itemset1 != itemset2
-        ]
-    )
+    new_itemsets = set()
+    for itemset1 in itemsets:
+        for itemset2 in itemsets:
+            candidate = itemset1.union(itemset2)
+            if len(candidate) != k:
+                continue
+            for item in candidate:
+                subset = candidate - frozenset([item])
+                if subset not in itemsets:
+                    break
+            new_itemsets.add(candidate)
+    return new_itemsets
 
 
 def itemsets_support(transactions, itemsets, min_support):
@@ -55,31 +56,39 @@ def apriori(transactions, min_support):
 
         # generate new candidates
         print('new method')
-        itemsets = _join_set(itemsets, k)
+        itemsets = join_set(itemsets, k)
         # print('og method')
-        # itemsets = join_set(itemsets, k)
+        # itemsets = _join_set(itemsets, k)
     frequent_itemsets = set(chain(*itemsets_by_length))
     return frequent_itemsets, itemsets_by_length
 
 
 def association_rules(transactions, min_support, min_confidence):
     frequent_itemsets, itemsets_by_length = apriori(transactions, min_support)
+
     rules = []
     for itemset in frequent_itemsets:
         for subset in filterfalse(lambda x: not x, powerset(itemset)):
             antecedent = frozenset(subset)
             consequent = itemset - antecedent
+            if not consequent:
+                continue
             support_antecedent = len(
-                [t for t in transactions if antecedent.issubset(t)]) / len(transactions)
-            support_itemset = len([t for t in transactions if itemset.issubset(t)]) / len(
+                [t for t in transactions if antecedent.issubset(t)]) / len(
+                transactions)
+            support_itemset = len(
+                [t for t in transactions if itemset.issubset(t)]) / len(
                 transactions)
             confidence = support_itemset / support_antecedent
             if confidence >= min_confidence:
-                rules.append((antecedent, consequent, support_itemset, confidence))
+                rules.append(
+                    (antecedent, consequent, support_itemset, confidence))
     return rules
 
 
 if __name__ == '__main__':
+    import time
+
     # Example usage
     transactions = [
         {1, 2, 3, 4},
@@ -90,7 +99,7 @@ if __name__ == '__main__':
         {3, 4},
         {2, 4}
     ]
-    transactions = transactions * 100
+    transactions = transactions
     min_support = 3 / 7
     min_confidence = 0.5
     start = time.time()

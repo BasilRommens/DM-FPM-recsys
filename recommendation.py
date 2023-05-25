@@ -1,10 +1,8 @@
-from apriori import association_rules
-
-
-def recommend_items(input_items, rules, top_n=5):
+def recommend_items(input_items, rules, top_n=5, rank_method='regular'):
     recommendations = {}
     for antecedent, consequent, support, confidence in rules:
-        if antecedent.issubset(input_items) and not consequent.issubset(input_items):
+        if antecedent.issubset(input_items) and not consequent.issubset(
+                input_items):
             for item in consequent:
                 if item not in input_items:
                     if item not in recommendations:
@@ -17,12 +15,21 @@ def recommend_items(input_items, rules, top_n=5):
         for item, item_rules in recommendations.items()
     }
 
-    sorted_recommendations = sorted(recommendations.items(),
-                                    key=lambda x: (-x[1][0], -x[1][1]))
+    if rank_method == 'regular':  # sort by confidence then support
+        sorted_recommendations = sorted(recommendations.items(),
+                                        key=lambda x: (x[1][0], x[1][1]),
+                                        reverse=True)
+    elif rank_method == 'product':  # sort by product of confidence and support
+        sorted_recommendations = sorted(recommendations.items(),
+                                        key=lambda x: x[1][0] * x[1][1],
+                                        reverse=True)
+
     return [item for item, _ in sorted_recommendations[:top_n]]
 
 
 if __name__ == '__main__':
+    from apriori import association_rules
+
     input_items = {"A", "B"}
     transactions = [
         {"A", "B", "C"},

@@ -21,8 +21,16 @@ def read_ndi(fname):
     for freq_itemset in ls_of_freq_itemsets:
         new_ls_of_freq_itemsets.append(set([int(item) for item in freq_itemset]))
 
-    return new_ls_of_freq_itemsets
+    # create a set of same length itemsets
+    itemsets_by_length = dict()
+    for itemset in new_ls_of_freq_itemsets:
+        if len(itemset) not in itemsets_by_length:
+            itemsets_by_length[len(itemset)] = list()
+        itemsets_by_length[len(itemset)].append(itemset)
 
+    itemsets_by_length = list(itemsets_by_length.values())
+
+    return new_ls_of_freq_itemsets, itemsets_by_length
 
 
 def split_dataset(data_set: list, test_size):
@@ -64,5 +72,6 @@ if __name__ == '__main__':
     # print(train)
     # print(test_data)
     # print(user_items)
-    sets = read_ndi("data/bf-190.dat")
-    print(sets)
+    frequent_itemsets, itemsets_by_length = read_ndi("data/bf-190.dat")
+    print(frequent_itemsets)
+    print(itemsets_by_length)

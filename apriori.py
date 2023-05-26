@@ -1,5 +1,7 @@
 from itertools import chain, combinations, filterfalse
 
+from data import read_ndi
+
 
 def powerset(iterable):
     s = list(iterable)
@@ -63,8 +65,11 @@ def apriori(transactions, min_support):
     return frequent_itemsets, itemsets_by_length
 
 
-def association_rules(transactions, min_support, min_confidence):
-    frequent_itemsets, itemsets_by_length = apriori(transactions, min_support)
+def association_rules(transactions, min_support, min_confidence, fname=None):
+    if fname:
+        frequent_itemsets, itemsets_by_length = read_ndi(fname)
+    else:
+        frequent_itemsets, itemsets_by_length = apriori(transactions, min_support)
 
     rules = []
     for itemset in frequent_itemsets:

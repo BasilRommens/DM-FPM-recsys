@@ -23,7 +23,13 @@ def recommend_items(input_items, rules, top_n=5, rank_method='regular'):
         sorted_recommendations = sorted(recommendations.items(),
                                         key=lambda x: x[1][0] * x[1][1],
                                         reverse=True)
+    elif rank_method == 'popularity':  # sort by support
+        sorted_recommendations = sorted(recommendations.items(),
+                                        key=lambda x: x[1][1],
+                                        reverse=True)
 
+    for item, _ in sorted_recommendations:
+        print(item)
     return [item for item, _ in sorted_recommendations[:top_n]]
 
 

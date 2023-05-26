@@ -8,20 +8,18 @@ if __name__ == '__main__':
     train, test, user_items = split_dataset(transactions, 0.8)
 
     # generate the association rules
-    min_support = 0.002
+    min_support = 0.005
     min_confidence = 0.5
     rules = association_rules(train, min_support, min_confidence)
 
     # remove the rules with a confidence below min_confidence
     rules = [rule for rule in rules if rule[3] >= min_confidence]
 
-    # create rules based on the
-
     # evaluate
     precision, recall, f1_score = evaluate_recommendations(test,
                                                            user_items, rules,
                                                            top_n=5,
-                                                           rank_method='product')
+                                                           rank_method='popularity')
     print("Precision:", precision)
     print("Recall:", recall)
     print("F1 score:", f1_score)

@@ -19,14 +19,15 @@ def read_ndi(fname):
     # convert the frequent itemsets to integers instead of strings
     new_ls_of_freq_itemsets = []
     for freq_itemset in ls_of_freq_itemsets:
-        new_ls_of_freq_itemsets.append(set([int(item) for item in freq_itemset]))
+        new_ls_of_freq_itemsets.append(
+            frozenset([item for item in freq_itemset]))
 
     # create a set of same length itemsets
     itemsets_by_length = dict()
     for itemset in new_ls_of_freq_itemsets:
         if len(itemset) not in itemsets_by_length:
-            itemsets_by_length[len(itemset)] = list()
-        itemsets_by_length[len(itemset)].append(itemset)
+            itemsets_by_length[len(itemset)] = set()
+        itemsets_by_length[len(itemset)].add(itemset)
 
     itemsets_by_length = list(itemsets_by_length.values())
 
@@ -62,6 +63,12 @@ def split_dataset(data_set: list, test_size):
                 sorted(list(test_el))[user_item_indices[i]])
 
     return train_data, test_data, user_items
+
+
+def write_dataset(dataset, fname):
+    with open(fname, 'w') as f:
+        for transaction in dataset:
+            f.write(' '.join(transaction) + '\n')
 
 
 if __name__ == '__main__':

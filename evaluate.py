@@ -6,18 +6,35 @@ def evaluate_recommendations(test_data, user_items, rules, top_n=5,
     true_positives = 0
     false_positives = 0
     false_negatives = 0
-    for user, true_items in test_data.items():
-        # Assuming user_items is a dictionary with user IDs as keys and their associated items as values
-        input_items = user_items[user]
-
+    total_items = 0
+    mrrs = 0
+    count_persons = 0
+    for user, input_items in test_data.items():
         # Get recommendations for the user based on the input items
-        recommended_items = set(
-            recommend_items(input_items, rules, top_n=top_n,
-                            rank_method=rank_method))
+        recommended_items = recommend_items(input_items, rules, top_n=top_n,
+                                            rank_method=rank_method)
+        recommended_items_s = set(recommended_items)
+
+        # Assuming user_items is a dictionary with user IDs as keys and their associated items as values
+        true_items = [user_items[user]]
+
         true_items = set(true_items)
-        true_positives += len(recommended_items.intersection(true_items))
-        false_positives += len(recommended_items - true_items)
-        false_negatives += len(true_items - recommended_items)
+        true_positives += len(recommended_items_s.intersection(true_items))
+        false_positives += len(recommended_items_s - true_items)
+        false_negatives += len(true_items - recommended_items_s)
+        total_items += len(true_items)
+
+        # calculate MRR
+        for item in recommended_items:
+            if item in true_items:
+                mrrs += 1 / (recommended_items.index(item) + 1)
+                break
+
+        # count of persons with recommended items
+        if len(recommended_items_s):
+            count_persons += 1
+
+
 
     # Calculate precision, recall, and F1 score
     precision = true_positives / (true_positives + false_positives) \
@@ -27,7 +44,16 @@ def evaluate_recommendations(test_data, user_items, rules, top_n=5,
     f1_score = 2 * (precision * recall) / (precision + recall) \
         if (precision + recall) > 0 else 0
 
-    return precision, recall, f1_score
+    # calculate MRR
+    MRR = mrrs / len(test_data.items())
+
+    # calculate HR
+    HR = true_positives / count_persons
+
+    # calculate ARHR
+    ARHR = mrrs / count_persons
+
+    return precision, recall, f1_score, MRR, HR, ARHR
 
 
 if __name__ == '__main__':

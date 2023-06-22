@@ -1,5 +1,7 @@
 from itertools import chain, combinations, filterfalse
 
+from tqdm import tqdm
+
 from data import read_ndi
 
 
@@ -57,7 +59,6 @@ def apriori(transactions, min_support):
         k += 1
 
         # generate new candidates
-        print('new method')
         itemsets = join_set(itemsets, k)
         # print('og method')
         # itemsets = _join_set(itemsets, k)
@@ -66,13 +67,15 @@ def apriori(transactions, min_support):
 
 
 def association_rules(transactions, min_support, min_confidence, fname=None):
-    if fname:
-        frequent_itemsets, itemsets_by_length = read_ndi(fname)
+    if fname is None:
+        frequent_itemsets, itemsets_by_length = apriori(transactions,
+                                                        min_support)
+        print(len(frequent_itemsets))
     else:
-        frequent_itemsets, itemsets_by_length = apriori(transactions, min_support)
+        frequent_itemsets, itemsets_by_length = read_ndi(fname)
 
     rules = []
-    for itemset in frequent_itemsets:
+    for itemset in tqdm(frequent_itemsets):
         for subset in filterfalse(lambda x: not x, powerset(itemset)):
             antecedent = frozenset(subset)
             consequent = itemset - antecedent
@@ -81,13 +84,17 @@ def association_rules(transactions, min_support, min_confidence, fname=None):
             support_antecedent = len(
                 [t for t in transactions if antecedent.issubset(t)]) / len(
                 transactions)
+            support_consequent = len(
+                [t for t in transactions if consequent.issubset(t)]) / len(
+                transactions)
             support_itemset = len(
                 [t for t in transactions if itemset.issubset(t)]) / len(
                 transactions)
             confidence = support_itemset / support_antecedent
             if confidence >= min_confidence:
                 rules.append(
-                    (antecedent, consequent, support_itemset, confidence))
+                    (antecedent, consequent, support_itemset, confidence,
+                     support_antecedent, support_consequent))
     return rules
 
 

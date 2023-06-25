@@ -13,24 +13,29 @@ if __name__ == '__main__':
     # write_dataset(train, 'data/retail-train.dat')
     results_df = pd.DataFrame(
         {'min_support': [], 'min_confidence': [], 'rank_method': [],
-         'score_type': [], 'score': [], 'is_ndi': []})
+         'combination_method': [], 'score_type': [], 'score': [], 'is_ndi': []})
 
     score_types = ['precision', 'recall', 'f1_score', 'MRR', 'HR', 'ARHR']
-    for min_confidence in [0, 0.003, 0.005, 0.007, 0.01, 0.02, 0.05, 0.1]:
-        min_support = 0.005
+    for min_support in range(10, 200, 20):
+        # min_support = 0.005
+        min_confidence = 0.01
         # generate the association rules
-        rules = association_rules(train, min_support, min_confidence)
-                                  # fname='data/bf-150.dat')
+        rules = association_rules(train, min_support, min_confidence,
+                                  fname=f'data/bf-{min_support}.dat')
 
         # evaluate
-        for rank_method in ['regular', 'product', 'popularity', 'interest']:
-            precision, recall, f1_score, MRR, HR, ARHR = \
-                evaluate_recommendations(test, user_items, rules, top_n=20,
-                                         rank_method=rank_method)
-            scores = [precision, recall, f1_score, MRR, HR, ARHR]
-            results_df = pd.concat([results_df, pd.DataFrame(
-                {'min_support': [min_support] * 6,
-                 'min_confidence': [min_confidence] * 6,
-                 'rank_method': [rank_method] * 6, 'score_type': score_types,
-                 'is_ndi': [False] * 6, 'score': scores})])
-    results_df.to_csv('results.csv')
+        for rank_method in ['all_confidence']:
+            for combination_method in ['sum', 'max', 'min']:
+                precision, recall, f1_score, MRR, HR, ARHR = \
+                    evaluate_recommendations(test, user_items, rules, top_n=100,
+                                             rank_method=rank_method,
+                                             combination_method=combination_method)
+                scores = [precision, recall, f1_score, MRR, HR, ARHR]
+                results_df = pd.concat([results_df, pd.DataFrame(
+                    {'min_support': [min_support] * 6,
+                     'min_confidence': [min_confidence] * 6,
+                     'rank_method': [rank_method] * 6,
+                     'score_type': score_types,
+                     'is_ndi': [True] * 6, 'score': scores,
+                     'combination_method': [combination_method] * 6})])
+    results_df.to_csv('results2.csv', index=False)

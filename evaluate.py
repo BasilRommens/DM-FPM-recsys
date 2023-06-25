@@ -2,7 +2,7 @@ from recommendation import recommend_items
 
 
 def evaluate_recommendations(test_data, user_items, rules, top_n=5,
-                             rank_method='regular'):
+                             rank_method='regular', combination_method='sum'):
     true_positives = 0
     false_positives = 0
     false_negatives = 0
@@ -12,7 +12,7 @@ def evaluate_recommendations(test_data, user_items, rules, top_n=5,
     for user, input_items in test_data.items():
         # Get recommendations for the user based on the input items
         recommended_items = recommend_items(input_items, rules, top_n=top_n,
-                                            rank_method=rank_method)
+                                            rank_method=rank_method, combination_method=combination_method)
         recommended_items_s = set(recommended_items)
 
         # Assuming user_items is a dictionary with user IDs as keys and their associated items as values

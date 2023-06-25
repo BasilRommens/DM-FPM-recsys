@@ -76,6 +76,12 @@ def association_rules(transactions, min_support, min_confidence, fname=None):
 
     rules = []
     for itemset in tqdm(frequent_itemsets):
+        max_support = float('-inf')
+        for singleton in itemset:
+            singleton = frozenset({singleton})
+            singleton_support = len(
+                [t for t in transactions if singleton.issubset(t)])
+            max_support = singleton_support if singleton_support > max_support else max_support
         for subset in filterfalse(lambda x: not x, powerset(itemset)):
             antecedent = frozenset(subset)
             consequent = itemset - antecedent
@@ -91,10 +97,11 @@ def association_rules(transactions, min_support, min_confidence, fname=None):
                 [t for t in transactions if itemset.issubset(t)]) / len(
                 transactions)
             confidence = support_itemset / support_antecedent
+            all_confidence = support_itemset / max_support
             if confidence >= min_confidence:
                 rules.append(
                     (antecedent, consequent, support_itemset, confidence,
-                     support_antecedent, support_consequent))
+                     support_antecedent, support_consequent, all_confidence))
     return rules
 
 

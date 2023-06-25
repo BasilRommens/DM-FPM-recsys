@@ -69,7 +69,7 @@ def third_task():
     sns.barplot(filtered_df, x='min_support', y='score', hue='rank_method',
                 palette=cmap.okabe_tl)
     # rename the x-axis and y-axis
-    plt.xlabel('Minimum Confidence')
+    plt.xlabel('NDI Support')
     plt.ylabel('ARHR')
 
     # put the legend on top and don't show a box

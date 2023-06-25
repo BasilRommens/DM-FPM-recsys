@@ -13,7 +13,7 @@ def recommend_items(input_items, rules, top_n=5, rank_method='regular',
                                                   support_consequent,
                                                   all_confidence))
 
-    if combination_method == 'sum':
+    if combination_method == 'sum':  # average all the item rules
         recommendations = {
             item: (
             sum(conf for conf, _, _, _, _ in item_rules) / len(item_rules),
@@ -27,7 +27,7 @@ def recommend_items(input_items, rules, top_n=5, rank_method='regular',
             ))
             for item, item_rules in recommendations.items()
         }
-    elif combination_method == 'max':
+    elif combination_method == 'max':  # max all the item rules
         recommendations = {
             item: (max(conf for conf, _, _, _, _ in item_rules),
                    max(sup for _, sup, _, _, _ in item_rules),
@@ -36,7 +36,7 @@ def recommend_items(input_items, rules, top_n=5, rank_method='regular',
                    max(all_conf for _, _, _, _, all_conf in item_rules))
             for item, item_rules in recommendations.items()
         }
-    elif combination_method == 'min':
+    elif combination_method == 'min':  # min all the item rules
         recommendations = {
             item: (min(conf for conf, _, _, _, _ in item_rules),
                    min(sup for _, sup, _, _, _ in item_rules),
@@ -59,12 +59,12 @@ def recommend_items(input_items, rules, top_n=5, rank_method='regular',
         sorted_recommendations = sorted(recommendations.items(),
                                         key=lambda x: x[1][1],
                                         reverse=descending)
-    elif rank_method == 'interest':
+    elif rank_method == 'interest':  # sort by interest
         sorted_recommendations = sorted(recommendations.items(),
                                         key=lambda x: x[1][1] / (
                                                 x[1][2] * x[1][3]),
                                         reverse=descending)
-    elif rank_method == 'all_confidence':
+    elif rank_method == 'all_confidence':  # sort by all confidence
         sorted_recommendations = sorted(recommendations.items(),
                                         key=lambda x: x[1][4],
                                         reverse=descending)

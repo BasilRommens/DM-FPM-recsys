@@ -6,11 +6,13 @@ from data import read_ndi
 
 
 def powerset(iterable):
+    # generate a powerset of the iterable
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
 
 def _join_set(itemsets, k):
+    # old join of set
     return set(
         [itemset1.union(itemset2)
          for itemset1 in itemsets
@@ -21,32 +23,54 @@ def _join_set(itemsets, k):
 
 def join_set(itemsets, k):
     new_itemsets = set()
+
+    # iterate over all the possible combinations of the sets
     for itemset1 in itemsets:
         for itemset2 in itemsets:
+            # generate a condidate of length k
             candidate = itemset1.union(itemset2)
             if len(candidate) != k:
                 continue
+
+            # check if all the subsets of candidate are in itemsets
+            too_little_itemset = False  # check for subset not in itemsets
             for item in candidate:
                 subset = candidate - frozenset([item])
                 if subset not in itemsets:
+                    too_little_itemset = True
                     break
-            new_itemsets.add(candidate)
+
+            # if all the subsets of candidate are in itemsets, add candidate
+            if not too_little_itemset:
+                new_itemsets.add(candidate)
+
     return new_itemsets
 
 
 def itemsets_support(transactions, itemsets, min_support):
+    # calculate the support of the itemsets
+
+    # support count per itemset
     support_count = {itemset: 0 for itemset in itemsets}
+
+    # iterate over all transactions to add to the count if the itemset is
+    # a subset of the transaction
     for transaction in transactions:
         for itemset in itemsets:
             if itemset.issubset(transaction):
                 support_count[itemset] += 1
+
+    # the number of transactions
     n_transactions = len(transactions)
+
+    # convert the support to the percentage support
     return {itemset: support / n_transactions for itemset, support in
             support_count.items() if
             support / n_transactions >= min_support}
 
 
 def apriori(transactions, min_support):
+    # perform the apriori algorithm
     items = set(chain(*transactions))
     itemsets = [frozenset([item]) for item in items]
     itemsets_by_length = [set()]
@@ -76,17 +100,23 @@ def association_rules(transactions, min_support, min_confidence, fname=None):
 
     rules = []
     for itemset in tqdm(frequent_itemsets):
+        # calculate the maximum support in the itemset only possible from
+        # singletons
         max_support = float('-inf')
         for singleton in itemset:
             singleton = frozenset({singleton})
             singleton_support = len(
                 [t for t in transactions if singleton.issubset(t)])
             max_support = singleton_support if singleton_support > max_support else max_support
+
+        # generate all the possible antecedents and consequents
         for subset in filterfalse(lambda x: not x, powerset(itemset)):
             antecedent = frozenset(subset)
             consequent = itemset - antecedent
-            if not consequent:
+            if not consequent:  # skip if no consequent
                 continue
+
+            # calculate the support and the confidences
             support_antecedent = len(
                 [t for t in transactions if antecedent.issubset(t)]) / len(
                 transactions)
@@ -98,6 +128,9 @@ def association_rules(transactions, min_support, min_confidence, fname=None):
                 transactions)
             confidence = support_itemset / support_antecedent
             all_confidence = support_itemset / max_support
+
+            # store the supports and the confidences if confidence is above
+            # the minimum confidence
             if confidence >= min_confidence:
                 rules.append(
                     (antecedent, consequent, support_itemset, confidence,

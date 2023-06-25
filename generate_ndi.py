@@ -1,6 +1,7 @@
 import os
 
 if __name__ == '__main__':
+    # ndi generation with both bf and df
     for ndi_type in ['bf', 'df']:
         for support in range(10, 200, 10):
             os.system(
